@@ -6,8 +6,9 @@
 
 
 import os, sys, glob, re, math, random, fnmatch, copy, json, time
-import zipfile, rarfile, sevenzfile
-from StringIO import StringIO
+import zipfile, rarfile
+#from StringIO import StringIO
+from io import StringIO, BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import argparse
 
@@ -25,7 +26,7 @@ def enum(*sequential, **named):
         enums['enum_attribs'] = [s[1:] for s in sequential]
     else:
         enums = dict(zip(sequential, range(len(sequential))), **named)
-        reverse = dict((value, key) for key, value in enums.iteritems())
+        reverse = dict((value, key) for key, value in enums.items())
     enums['reverse_mapping'] = reverse
     enums['count'] = len(enums)
     return type('Enum', (), enums)
@@ -99,7 +100,7 @@ def resize(img, box, fit = False, center = True, left = False, out = None, backg
         else:
             x1 = int(x2/2-box[0]*hRatio/2)
             x2 = int(x2/2+box[0]*hRatio/2)
-        print "Fit: is=(%d,%d) wr=%f hf=%f box=(%d,%d) out=(%d,%d,%d,%d)" % (img.size[0], img.size[1], wRatio, hRatio, box[0], box[1] ,x1,y1,x2,y2)
+        print("Fit: is=(%d,%d) wr=%f hf=%f box=(%d,%d) out=(%d,%d,%d,%d)" % (img.size[0], img.size[1], wRatio, hRatio, box[0], box[1] ,x1,y1,x2,y2))
         img = img.crop((x1,y1,x2,y2))
  
     # Crop to left part of image that fits aspect ratio, scale vertical to fit
@@ -459,7 +460,7 @@ def layoutImages(width, height, imgs, thimgsize = 150, forceFullSize = True, cro
                         imgs[curimg] = Image.open(imgs[curimg])
                     else:
                         ifn = imgs[curimg]
-                        imgs[curimg] = Image.open(StringIO(archive.read(imgs[curimg])))
+                        imgs[curimg] = Image.open(BytesIO(archive.read(imgs[curimg])))
                         imgs[curimg].filename = ifn
 
                     if thumbminsize > 0:
@@ -481,7 +482,8 @@ def layoutImages(width, height, imgs, thimgsize = 150, forceFullSize = True, cro
                         imgs[curimg].load()
 
                     break
-                except Exception:
+                except Exception as ex:
+                    log(LogLevels.DEBUG, repr(ex))
                     del imgs[curimg]
                     nimgs -= 1
 
@@ -589,7 +591,7 @@ def layoutImages(width, height, imgs, thimgsize = 150, forceFullSize = True, cro
             y = topoffset + 2 * border + cover.size[1]
 
     ic = 0
-    for i in xrange(0, len(rows)):
+    for i in range(0, len(rows)):
         r = rows[i]
         rw = rowwidths[i]
         if cover and y < cover.size[1]:
@@ -707,7 +709,7 @@ def createContactSheet(options, folder, progress = None):
         return
 
     if options['random']:
-        for i in xrange(0, len(files)):
+        for i in range(0, len(files)):
             dest = random.randrange(len(files))
             f = files[dest]
             files[dest] = files[i]
